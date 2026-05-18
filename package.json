@@ -1,0 +1,12 @@
+{
+  "name": "devcollab",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "echo \"Run frontend and backend from their own package.json files\"",
+    "build": "echo \"Build commands live in frontend/ and backend/\""
+  }
+}
