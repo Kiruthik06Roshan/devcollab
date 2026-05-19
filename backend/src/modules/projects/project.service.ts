@@ -3,7 +3,10 @@ import { ProjectModel } from '../../models/project.model';
 import { TaskModel } from '../../models/task.model';
 import { WorkspaceModel } from '../../models/workspace.model';
 import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb';
+import { getSocketServer } from '../../config/socket';
+import { socketEvents } from '../../socket/events';
 import { randomSuffix, slugify } from '../../utils/slug';
+import { activityService } from '../activity/activity.service';
 
 async function assertProjectAccess(userId: string, projectId: string) {
   if (getDatabaseMode() === 'memory') {
@@ -92,6 +95,19 @@ export const projectService = {
       };
 
       memoryDb.projects.push(project);
+      try {
+        const io = getSocketServer();
+        io.to(`workspace:${workspace.id}`).emit(socketEvents.activityNew, { workspaceId: workspace.id });
+        void activityService.create({
+          workspace: workspace.id,
+          project: project.id,
+          actor: userId,
+          type: 'project_created',
+          summary: `Created project ${project.name}`
+        });
+      } catch (err) {
+        // ignore socket errors
+      }
       return project;
     }
 
@@ -105,7 +121,7 @@ export const projectService = {
     }
 
     const slug = await ensureUniqueProjectSlug(workspace.id, slugify(payload.name));
-    return ProjectModel.create({
+    const created = await ProjectModel.create({
       workspace: workspace._id,
       name: payload.name,
       slug,
@@ -114,6 +130,22 @@ export const projectService = {
       owner: userId,
       members: [userId]
     });
+
+    try {
+      const io = getSocketServer();
+      io.to(`workspace:${workspace.id.toString()}`).emit(socketEvents.activityNew, { workspaceId: workspace.id.toString() });
+      void activityService.create({
+        workspace: workspace.id.toString(),
+        project: (created as any)._id?.toString(),
+        actor: userId,
+        type: 'project_created',
+        summary: `Created project ${created.name}`
+      });
+    } catch (err) {
+      // ignore
+    }
+
+    return created;
   },
 
   async detail(userId: string, projectId: string) {
@@ -156,7 +188,8 @@ export const projectService = {
     }
 
     const project = await assertProjectAccess(userId, projectId);
-    const tasks = await TaskModel.find({ project: project._id }).sort({ status: 1, order: 1, createdAt: 1 });
+    const projectDoc: any = project as any;
+    const tasks = await TaskModel.find({ project: projectDoc._id }).sort({ status: 1, order: 1, createdAt: 1 });
 
     return {
       project,

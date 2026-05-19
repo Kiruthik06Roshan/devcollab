@@ -3,7 +3,10 @@ import { WorkspaceModel } from '../../models/workspace.model';
 import { ProjectModel } from '../../models/project.model';
 import { UserModel } from '../../models/user.model';
 import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb';
+import { getSocketServer } from '../../config/socket';
+import { socketEvents } from '../../socket/events';
 import { slugify, randomSuffix } from '../../utils/slug';
+import { activityService } from '../activity/activity.service';
 
 function membershipQuery(userId: string) {
   return { $or: [{ owner: userId }, { 'members.user': userId }] };
@@ -71,6 +74,19 @@ export const workspaceService = {
         user.workspaceMemberships.push({ workspace: workspace.id, role: 'owner', joinedAt: new Date() });
       }
 
+      try {
+        const io = getSocketServer();
+        io.to(`workspace:${workspace.id}`).emit(socketEvents.activityNew, { workspaceId: workspace.id });
+        void activityService.create({
+          workspace: workspace.id,
+          actor: userId,
+          type: 'workspace_created',
+          summary: `Created workspace ${workspace.name}`
+        });
+      } catch (err) {
+        // ignore
+      }
+
       return workspace;
     }
 
@@ -92,6 +108,19 @@ export const workspaceService = {
         }
       }
     });
+
+    try {
+      const io = getSocketServer();
+      io.to(`workspace:${workspace._id.toString()}`).emit(socketEvents.activityNew, { workspaceId: workspace._id.toString() });
+      void activityService.create({
+        workspace: workspace._id.toString(),
+        actor: userId,
+        type: 'workspace_created',
+        summary: `Created workspace ${workspace.name}`
+      });
+    } catch (err) {
+      // ignore
+    }
 
     return workspace;
   },

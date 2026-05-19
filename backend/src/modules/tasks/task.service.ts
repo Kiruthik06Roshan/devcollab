@@ -3,6 +3,10 @@ import { TaskModel } from '../../models/task.model';
 import { ProjectModel } from '../../models/project.model';
 import { WorkspaceModel } from '../../models/workspace.model';
 import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb';
+import { getSocketServer } from '../../config/socket';
+import { socketEvents } from '../../socket/events';
+import { notificationService } from '../notifications/notification.service';
+import { activityService } from '../activity/activity.service';
 
 async function assertProjectAccess(userId: string, projectId: string) {
   if (getDatabaseMode() === 'memory') {
@@ -67,7 +71,8 @@ export const taskService = {
     }
 
     const project = await assertProjectAccess(userId, projectId);
-    return TaskModel.find({ project: project._id }).sort({ status: 1, order: 1, createdAt: 1 });
+    const projectDoc: any = project as any;
+    return TaskModel.find({ project: projectDoc._id }).sort({ status: 1, order: 1, createdAt: 1 });
   },
 
   async create(userId: string, projectId: string, payload: { title: string; description?: string; status?: string; priority?: string; labels?: string[]; dueDate?: string | null; assigneeIds?: string[] }) {
@@ -91,15 +96,31 @@ export const taskService = {
       };
 
       memoryDb.tasks.push(task);
+      try {
+        const io = getSocketServer();
+        io.to(`project:${projectId}`).emit(socketEvents.taskUpdated, { projectId, taskId: task.id });
+        io.to(`workspace:${project.workspace}`).emit(socketEvents.activityNew, { workspaceId: project.workspace });
+        void activityService.create({
+          workspace: project.workspace,
+          project: project.id,
+          task: task.id,
+          actor: userId,
+          type: 'task_created',
+          summary: `Created task ${task.title}`
+        });
+      } catch (err) {
+        // socket server unavailable — ignore
+      }
       return task;
     }
 
     const project = await assertProjectAccess(userId, projectId);
-    const currentCount = await TaskModel.countDocuments({ project: project._id, status: payload.status ?? 'todo' });
+    const projectDoc: any = project as any;
+    const currentCount = await TaskModel.countDocuments({ project: projectDoc._id, status: payload.status ?? 'todo' });
 
-    return TaskModel.create({
-      workspace: project.workspace,
-      project: project._id,
+    const created = await TaskModel.create({
+      workspace: projectDoc.workspace,
+      project: projectDoc._id,
       title: payload.title,
       description: payload.description ?? '',
       status: payload.status ?? 'todo',
@@ -110,6 +131,33 @@ export const taskService = {
       reporter: userId,
       order: currentCount
     });
+
+    try {
+      // create notifications for assignees
+      const assignees = payload.assigneeIds ?? [];
+      for (const assigneeId of assignees) {
+        await notificationService.create({
+          recipient: assigneeId,
+          actor: userId,
+          type: 'assignment',
+          title: 'New task assigned',
+          body: `${payload.title}`,
+          workspace: projectDoc.workspace?.toString() ?? undefined,
+          project: projectDoc._id?.toString() ?? undefined,
+          task: (created as any)._id?.toString() ?? undefined
+        });
+        try {
+          const io = getSocketServer();
+          io.to(`user:${assigneeId}`).emit(socketEvents.notificationNew, { userId: assigneeId, taskId: (created as any)._id?.toString() });
+        } catch (err) {
+          // ignore
+        }
+      }
+    } catch (err) {
+      // ignore notification failures
+    }
+
+    return created;
   },
 
   async update(userId: string, taskId: string, payload: { title?: string; description?: string; status?: string; priority?: string; labels?: string[]; dueDate?: string | null; assigneeIds?: string[] }) {
@@ -136,9 +184,10 @@ export const taskService = {
     }
 
     const task = await assertTaskAccess(userId, taskId);
+    const taskDoc: any = task as any;
 
     if (payload.status && payload.status !== task.status) {
-      const nextOrder = await TaskModel.countDocuments({ project: task.project, status: payload.status });
+      const nextOrder = await TaskModel.countDocuments({ project: taskDoc.project, status: payload.status });
       task.status = payload.status as never;
       task.order = nextOrder;
     }
@@ -150,7 +199,49 @@ export const taskService = {
     if (payload.dueDate !== undefined) task.dueDate = payload.dueDate ? new Date(payload.dueDate) : undefined;
     if (payload.assigneeIds !== undefined) task.assignees = payload.assigneeIds as never;
 
-    await task.save();
+    await (task as any).save();
+
+    try {
+      const io = getSocketServer();
+      const projId = taskDoc.project.toString();
+      io.to(`project:${projId}`).emit(socketEvents.taskUpdated, { projectId: projId, taskId: taskDoc._id.toString() });
+      io.to(`workspace:${taskDoc.workspace.toString()}`).emit(socketEvents.activityNew, { workspaceId: taskDoc.workspace.toString() });
+      void activityService.create({
+        workspace: taskDoc.workspace.toString(),
+        project: projId,
+        task: taskDoc._id.toString(),
+        actor: userId,
+        type: 'task_updated',
+        summary: `Updated task ${task.title}`
+      });
+    } catch (err) {
+      // ignore when socket server not present
+    }
+    try {
+      // notify assignees of update
+      const assignees: string[] = (taskDoc.assignees ?? []) as string[];
+      for (const assigneeId of assignees) {
+        if (assigneeId === userId) continue;
+        await notificationService.create({
+          recipient: assigneeId,
+          actor: userId,
+          type: 'task_update',
+          title: 'Task updated',
+          body: `${task.title}`,
+          workspace: taskDoc.workspace?.toString() ?? undefined,
+          project: taskDoc.project?.toString() ?? undefined,
+          task: taskDoc._id?.toString() ?? undefined
+        });
+        try {
+          const io = getSocketServer();
+          io.to(`user:${assigneeId}`).emit(socketEvents.notificationNew, { userId: assigneeId, taskId: taskDoc._id?.toString() });
+        } catch (err) {
+          // ignore
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
     return task;
   },
 
@@ -168,9 +259,51 @@ export const taskService = {
     }
 
     const task = await assertTaskAccess(userId, taskId);
+    const taskDoc: any = task as any;
     task.status = payload.status as never;
     task.order = payload.order ?? 0;
-    await task.save();
+    await (task as any).save();
+
+    try {
+      const io = getSocketServer();
+      const projId = taskDoc.project.toString();
+      io.to(`project:${projId}`).emit(socketEvents.taskMoved, { projectId: projId, taskId: taskDoc._id.toString() });
+      io.to(`workspace:${taskDoc.workspace.toString()}`).emit(socketEvents.activityNew, { workspaceId: taskDoc.workspace.toString() });
+      void activityService.create({
+        workspace: taskDoc.workspace.toString(),
+        project: projId,
+        task: taskDoc._id.toString(),
+        actor: userId,
+        type: 'task_moved',
+        summary: `Moved task ${task.title} to ${task.status}`
+      });
+    } catch (err) {
+      // ignore
+    }
+    try {
+      const assignees: string[] = (taskDoc.assignees ?? []) as string[];
+      for (const assigneeId of assignees) {
+        if (assigneeId === userId) continue;
+        await notificationService.create({
+          recipient: assigneeId,
+          actor: userId,
+          type: 'task_update',
+          title: 'Task moved',
+          body: `${task.title}`,
+          workspace: taskDoc.workspace?.toString() ?? undefined,
+          project: taskDoc.project?.toString() ?? undefined,
+          task: taskDoc._id?.toString() ?? undefined
+        });
+        try {
+          const io = getSocketServer();
+          io.to(`user:${assigneeId}`).emit(socketEvents.notificationNew, { userId: assigneeId, taskId: taskDoc._id?.toString() });
+        } catch (err) {
+          // ignore
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
     return task;
   },
 
@@ -185,7 +318,25 @@ export const taskService = {
     }
 
     const task = await assertTaskAccess(userId, taskId);
-    await task.deleteOne();
+    const taskDoc: any = task as any;
+    await (task as any).deleteOne();
+
+    try {
+      const io = getSocketServer();
+      const projId = taskDoc.project.toString();
+      io.to(`project:${projId}`).emit(socketEvents.taskUpdated, { projectId: projId, taskId: taskDoc._id.toString() });
+      io.to(`workspace:${taskDoc.workspace.toString()}`).emit(socketEvents.activityNew, { workspaceId: taskDoc.workspace.toString() });
+      void activityService.create({
+        workspace: taskDoc.workspace.toString(),
+        project: projId,
+        task: taskDoc._id.toString(),
+        actor: userId,
+        type: 'task_deleted',
+        summary: `Deleted task ${task.title}`
+      });
+    } catch (err) {
+      // ignore
+    }
     return task;
   },
 

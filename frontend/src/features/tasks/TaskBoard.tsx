@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSocket } from '@/hooks/useSocket';
+import { useAuth } from '@/hooks/useAuth';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
-import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
@@ -13,6 +15,8 @@ import { Skeleton } from '@/components/common/Skeleton';
 import { createTask, deleteTask, moveTask, updateTask } from '@/services/api/tasks';
 import { fetchProjectBoard } from '@/services/api/projects';
 import { getApiErrorMessage } from '@/services/api/client';
+import { fetchNotifications } from '@/services/api/notifications';
+import { Avatar } from '@/components/ui/avatar';
 import type { BoardResponse, Task, TaskPriority, TaskStatus } from '@/types/entities';
 
 const columns: Array<{ id: TaskStatus; title: string; accent: string }> = [
@@ -79,6 +83,7 @@ export function TaskBoard({ projectId }: { projectId: string }) {
   const [isSaving, setIsSaving] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -94,6 +99,71 @@ export function TaskBoard({ projectId }: { projectId: string }) {
 
     void load();
   }, [projectId]);
+
+  const socket = useSocket();
+  const auth = useAuth();
+
+  const [presence, setPresence] = useState<{ users: Array<{ id: string; name: string; avatarUrl?: string; connections?: number }>; count: number } | null>(null);
+  const [notifications, setNotifications] = useState<Array<any>>([]);
+  const unreadCount = notifications.filter((n) => !n.readAt).length;
+
+  useEffect(() => {
+    if (!board) return;
+
+    try {
+      socket.connect();
+      const projId = board.project._id ?? board.project.id;
+      socket.emit('project:join', projId);
+      socket.emit('workspace:join', board.project.workspace);
+
+      const handleTaskUpdated = (payload: { projectId: string; taskId: string }) => {
+        if (payload.projectId !== projId) return;
+        void fetchProjectBoard(projectId).then((response) => setBoard(response)).catch(() => {});
+      };
+
+      const handleTaskMoved = (payload: { projectId: string; taskId: string }) => {
+        if (payload.projectId !== projId) return;
+        void fetchProjectBoard(projectId).then((response) => setBoard(response)).catch(() => {});
+      };
+
+      const handlePresence = (payload: { workspaceId: string; users: Array<any>; count: number }) => {
+        setPresence({ users: payload.users, count: payload.count });
+      };
+
+      const handleNotification = (payload: any) => {
+        toast('New notification');
+        // refresh notifications
+        void fetchNotifications().then((res) => setNotifications(res.notifications)).catch(() => {});
+      };
+
+      const handleActivity = (payload: { workspaceId: string }) => {
+        toast('Activity in workspace');
+      };
+
+      socket.on('board:task-updated', handleTaskUpdated);
+      socket.on('board:task-moved', handleTaskMoved);
+      socket.on('presence:update', handlePresence);
+      socket.on('notification:new', handleNotification);
+      socket.on('activity:new', handleActivity);
+
+      return () => {
+        try {
+          socket.emit('project:leave', projId);
+          socket.emit('workspace:leave', board.project.workspace);
+          socket.off('board:task-updated', handleTaskUpdated);
+          socket.off('board:task-moved', handleTaskMoved);
+          socket.off('presence:update', handlePresence);
+          socket.off('notification:new', handleNotification);
+          socket.off('activity:new', handleActivity);
+          socket.disconnect();
+        } catch (err) {
+          // ignore
+        }
+      };
+    } catch (err) {
+      // ignore
+    }
+  }, [board, projectId, socket]);
 
   function openCreate(status: TaskStatus) {
     setEditingTask(null);
@@ -187,6 +257,11 @@ export function TaskBoard({ projectId }: { projectId: string }) {
       const response = await fetchProjectBoard(projectId);
       setBoard(response);
     }
+    setActiveId(null);
+  }
+
+  function handleDragStart(event: any) {
+    setActiveId(String(event.active.id));
   }
 
   const taskCount = useMemo(() => board?.tasks.length ?? 0, [board]);
@@ -216,16 +291,29 @@ export function TaskBoard({ projectId }: { projectId: string }) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Badge>{taskCount} tasks</Badge>
+            <div className="flex items-center gap-3">
+              {presence && presence.users.length ? (
+                <div className="flex -space-x-2">
+                  {presence.users.slice(0, 4).map((u) => (
+                    <Avatar key={u.id} className="h-8 w-8 border border-white/10 text-xs">{(u.name || 'U').split(' ').map((p: string) => p[0]).slice(0,2).join('').toUpperCase()}</Avatar>
+                  ))}
+                </div>
+              ) : null}
+              <Badge>{taskCount} tasks</Badge>
+            </div>
             <Button onClick={() => openCreate('todo')}>
               <Plus className="mr-2 h-4 w-4" />
               New task
+            </Button>
+            <Button variant="ghost" className="relative">
+              Notifications
+              {unreadCount ? <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px]">{unreadCount}</span> : null}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragStart={handleDragStart}>
         <div className="grid gap-4 xl:grid-cols-4">
           {columns.map((column) => (
             <TaskColumn
@@ -241,6 +329,27 @@ export function TaskBoard({ projectId }: { projectId: string }) {
           ))}
         </div>
       </DndContext>
+
+      <DragOverlay dropAnimation={{ duration: 120 }}>
+        {activeId ? (
+          (() => {
+            const activeTask = board?.tasks.find((t) => t.id === activeId);
+            return activeTask ? (
+              <div className="pointer-events-none w-[20rem] rounded-2xl border border-white/10 bg-slate-950/60 p-4 shadow-2xl transform-gpu scale-105">
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="font-medium text-white">{activeTask.title}</div>
+                    {activeTask.description ? <p className="text-sm leading-6 text-slate-400">{activeTask.description}</p> : null}
+                    <div className="flex items-center justify-between gap-3 pt-1">
+                      <div className="text-xs text-slate-500">1 assignee placeholder</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null;
+          })()
+        ) : null}
+      </DragOverlay>
 
       {modalOpen ? (
         <TaskModal

@@ -20,19 +20,19 @@ export const projectController = {
     const board = await projectService.board(req.user!.id, projectId);
     return res.json(board);
   },
-  listView(req: Request, res: Response) {
+  async listView(req: Request, res: Response) {
     return projectController.board(req, res);
   },
-  calendar(_req: Request, res: Response) {
+  async calendar(_req: Request, res: Response) {
     return res.json({ message: 'Calendar route ready for future iteration' });
   },
-  wiki(_req: Request, res: Response) {
+  async wiki(_req: Request, res: Response) {
     return res.json({ message: 'Wiki route ready for future iteration' });
   },
-  snippets(_req: Request, res: Response) {
+  async snippets(_req: Request, res: Response) {
     return res.json({ message: 'Snippets route ready for future iteration' });
   },
-  activity(_req: Request, res: Response) {
+  async activity(_req: Request, res: Response) {
     return res.json({ message: 'Activity route ready for future iteration' });
   }
 };
