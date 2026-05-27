@@ -59,28 +59,28 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card className="border-white/10 bg-white/5">
+        <Card>
           <CardContent className="space-y-4 p-6">
-            <Badge className="border-cyan-400/20 bg-cyan-400/10 text-cyan-200">Dashboard</Badge>
+            <Badge className="border-cyan-400/20 bg-cyan-400/10 text-cyan-400">Dashboard</Badge>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white">Welcome back{user ? `, ${user.name}` : ''}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+              <h1 className="text-3xl font-semibold tracking-tight text-text">Welcome back{user ? `, ${user.name}` : ''}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
                 Create a workspace, add projects, and start managing the team board from a polished SaaS shell.
               </p>
             </div>
             <div className="grid gap-3 md:grid-cols-3">
-              <Card className="border-white/10 bg-slate-900/60"><CardContent className="p-4"><div className="text-sm text-slate-400">Workspaces</div><div className="mt-2 text-2xl font-semibold text-white">{workspaces.length}</div></CardContent></Card>
-              <Card className="border-white/10 bg-slate-900/60"><CardContent className="p-4"><div className="text-sm text-slate-400">Status</div><div className="mt-2 text-2xl font-semibold text-white">Live</div></CardContent></Card>
-              <Card className="border-white/10 bg-slate-900/60"><CardContent className="p-4"><div className="text-sm text-slate-400">Session</div><div className="mt-2 text-2xl font-semibold text-white">Active</div></CardContent></Card>
+              <Card className="border-border/60 bg-surface/50"><CardContent className="p-4"><div className="text-sm text-muted">Workspaces</div><div className="mt-2 text-2xl font-semibold text-text">{workspaces.length}</div></CardContent></Card>
+              <Card className="border-border/60 bg-surface/50"><CardContent className="p-4"><div className="text-sm text-muted">Status</div><div className="mt-2 text-2xl font-semibold text-text">Live</div></CardContent></Card>
+              <Card className="border-border/60 bg-surface/50"><CardContent className="p-4"><div className="text-sm text-muted">Session</div><div className="mt-2 text-2xl font-semibold text-text">Active</div></CardContent></Card>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-white/5">
+        <Card>
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-xl font-semibold text-white">New workspace</h2>
-              <p className="text-sm text-slate-400">Start a team space for a class, club, or hackathon project.</p>
+              <h2 className="text-xl font-semibold text-text">New workspace</h2>
+              <p className="text-sm text-muted">Start a team space for a class, club, or hackathon project.</p>
             </div>
             <form className="space-y-3" onSubmit={handleCreateWorkspace}>
               <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="DevCollab Team" />
@@ -95,8 +95,8 @@ export default function DashboardPage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Your workspaces</h2>
-          <span className="text-sm text-slate-400">{loading ? 'Loading...' : `${workspaces.length} total`}</span>
+          <h2 className="text-xl font-semibold text-text">Your workspaces</h2>
+          <span className="text-sm text-muted">{loading ? 'Loading...' : `${workspaces.length} total`}</span>
         </div>
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -108,24 +108,24 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {workspaces.map((workspace) => (
               <Link key={workspace.id} to={`/workspace/${workspace.id}`}>
-                <Card className="h-full border-white/10 bg-white/5 transition hover:-translate-y-1 hover:bg-white/7">
-                  <CardHeader className="border-white/5">
+                <Card className="h-full border-border bg-surface/40 transition hover:-translate-y-1 hover:bg-surface/80">
+                  <CardHeader className="border-border/40">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-lg font-semibold text-white">{workspace.name}</div>
-                        <div className="text-sm text-slate-400">/{workspace.slug}</div>
+                        <div className="text-lg font-semibold text-text">{workspace.name}</div>
+                        <div className="text-sm text-muted">/{workspace.slug}</div>
                       </div>
-                      <Badge className="border-cyan-400/20 bg-cyan-400/10 text-cyan-200">{workspace.plan ?? 'Free'}</Badge>
+                      <Badge className="border-cyan-400/20 bg-cyan-400/10 text-cyan-400">{workspace.plan ?? 'Free'}</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="text-sm text-slate-400">{workspace.description || 'No description yet.'}</CardContent>
+                  <CardContent className="text-sm text-muted">{workspace.description || 'No description yet.'}</CardContent>
                 </Card>
               </Link>
             ))}
           </div>
         ) : (
-          <Card className="border-dashed border-white/10 bg-white/3">
-            <CardContent className="p-8 text-center text-sm text-slate-400">Create your first workspace to begin organizing projects.</CardContent>
+          <Card className="border-dashed border-border bg-surface/30">
+            <CardContent className="p-8 text-center text-sm text-muted">Create your first workspace to begin organizing projects.</CardContent>
           </Card>
         )}
       </section>

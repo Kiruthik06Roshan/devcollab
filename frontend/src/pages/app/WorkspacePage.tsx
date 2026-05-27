@@ -63,27 +63,27 @@ export default function WorkspacePage() {
   return (
     <div className="space-y-6">
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card className="border-white/10 bg-white/5">
+        <Card>
           <CardContent className="space-y-4 p-6">
             {loading ? (
               <Skeleton className="h-32" />
             ) : (
               <>
-                <Badge className="border-cyan-400/20 bg-cyan-400/10 text-cyan-200">Workspace</Badge>
+                <Badge className="border-cyan-400/20 bg-cyan-400/10 text-cyan-400">Workspace</Badge>
                 <div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-white">{workspace?.name}</h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">{workspace?.description || 'Collaborate on projects and tasks.'}</p>
+                  <h1 className="text-3xl font-semibold tracking-tight text-text">{workspace?.name}</h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">{workspace?.description || 'Collaborate on projects and tasks.'}</p>
                 </div>
               </>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-white/10 bg-white/5">
+        <Card>
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-xl font-semibold text-white">New project</h2>
-              <p className="text-sm text-slate-400">Create a project board for this workspace.</p>
+              <h2 className="text-xl font-semibold text-text">New project</h2>
+              <p className="text-sm text-muted">Create a project board for this workspace.</p>
             </div>
             <form className="space-y-3" onSubmit={handleCreateProject}>
               <Input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="Sprint 01" />
@@ -98,8 +98,8 @@ export default function WorkspacePage() {
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Projects</h2>
-          <span className="text-sm text-slate-400">{loading ? 'Loading...' : `${projects.length} active`}</span>
+          <h2 className="text-xl font-semibold text-text">Projects</h2>
+          <span className="text-sm text-muted">{loading ? 'Loading...' : `${projects.length} active`}</span>
         </div>
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -111,17 +111,17 @@ export default function WorkspacePage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {projects.map((project) => (
               <Link key={project.id} to={`/project/${project.id}/board`}>
-                <Card className="h-full border-white/10 bg-white/5 transition hover:-translate-y-1 hover:bg-white/7">
-                  <CardHeader className="border-white/5">
+                <Card className="h-full border-border bg-surface/40 transition hover:-translate-y-1 hover:bg-surface/85">
+                  <CardHeader className="border-border/30">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="text-lg font-semibold text-white">{project.name}</div>
-                        <div className="text-sm text-slate-400">/{project.slug}</div>
+                        <div className="text-lg font-semibold text-text">{project.name}</div>
+                        <div className="text-sm text-muted">/{project.slug}</div>
                       </div>
-                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color ?? '#38bdf8' }} />
+                      <span className="h-3 w-3 rounded-full animate-pulse-slow" style={{ backgroundColor: project.color ?? '#38bdf8' }} />
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm text-slate-400">
+                  <CardContent className="space-y-3 text-sm text-muted">
                     <div>{project.description || 'No description yet.'}</div>
                     <div className="flex gap-2">
                       <Badge>{project.status ?? 'active'}</Badge>
@@ -133,8 +133,8 @@ export default function WorkspacePage() {
             ))}
           </div>
         ) : (
-          <Card className="border-dashed border-white/10 bg-white/3">
-            <CardContent className="p-8 text-center text-sm text-slate-400">Create a project to start a board and break work into tasks.</CardContent>
+          <Card className="border-dashed border-border bg-surface/30">
+            <CardContent className="p-8 text-center text-sm text-muted">Create a project to start a board and break work into tasks.</CardContent>
           </Card>
         )}
       </section>

@@ -105,12 +105,12 @@ export function NotificationCenter() {
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-[28rem] max-w-full rounded-xl border border-white/10 bg-slate-950/95 shadow-2xl backdrop-blur-sm">
-          <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-            <div className="text-sm font-semibold text-white">Notifications</div>
-            <div className="flex items-center gap-2">
-              <button className="text-xs text-slate-400" onClick={handleMarkAll} disabled={!items.length}>Mark all read</button>
-              <button className="p-1 text-slate-400 hover:text-slate-200" onClick={() => setOpen(false)} aria-label="Close"><X className="h-4 w-4" /></button>
+        <div className="absolute right-0 z-50 mt-3 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/8 bg-slate-950/85 shadow-soft backdrop-blur-xl transition-all duration-200">
+          <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+            <div className="text-[1.05rem] font-bold text-white tracking-wide">Notifications</div>
+            <div className="flex items-center gap-3">
+              <button className="text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors" onClick={handleMarkAll} disabled={!items.length}>Mark all read</button>
+              <button className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition" onClick={() => setOpen(false)} aria-label="Close"><X className="h-4.5 w-4.5" /></button>
             </div>
           </div>
           <div className="max-h-96 overflow-auto p-3">
