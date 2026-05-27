@@ -1,5 +1,5 @@
 import { Schema, model, type InferSchemaType } from 'mongoose';
-import { taskPriorities, taskStatuses } from './constants';
+import { taskPriorities, taskStatuses } from './constants.js';
 
 const attachmentSchema = new Schema(
   {

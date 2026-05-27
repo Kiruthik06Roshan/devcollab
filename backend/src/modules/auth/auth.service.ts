@@ -1,11 +1,11 @@
 import type { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { ApiError } from '../../utils/apiError';
-import { env } from '../../config/env';
-import { UserModel } from '../../models/user.model';
-import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb';
-import { WorkspaceModel } from '../../models/workspace.model';
+import { ApiError } from '../../utils/apiError.js';
+import { env } from '../../config/env.js';
+import { UserModel } from '../../models/user.model.js';
+import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb.js';
+import { WorkspaceModel } from '../../models/workspace.model.js';
 
 type AuthPayload = {
   email: string;

@@ -5,9 +5,9 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import { apiRouter } from './routes/index.js';
-import { errorHandler } from './middleware/error';
-import { notFound } from './middleware/notFound';
-import { env } from './config/env';
+import { errorHandler } from './middleware/error.js';
+import { notFound } from './middleware/notFound.js';
+import { env } from './config/env.js';
 
 export const app = express();
 

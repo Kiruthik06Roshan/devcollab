@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { env } from './env';
-import { setDatabaseMode } from '../services/memoryDb';
+import { env } from './env.js';
+import { setDatabaseMode } from '../services/memoryDb.js';
 
 export async function connectDatabase() {
   mongoose.set('strictQuery', true);

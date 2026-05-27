@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { activityService } from './activity.service';
+import { activityService } from './activity.service.js';
 
 export const activityController = {
   async list(req: Request, res: Response) {

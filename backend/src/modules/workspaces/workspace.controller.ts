@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { workspaceService } from './workspace.service';
+import { workspaceService } from './workspace.service.js';
 
 export const workspaceController = {
   async list(req: Request, res: Response) {

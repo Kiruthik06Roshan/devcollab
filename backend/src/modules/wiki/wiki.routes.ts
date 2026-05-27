@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { wikiController } from './wiki.controller';
-import { authMiddleware } from '../../middleware/auth';
+import { wikiController } from './wiki.controller.js';
+import { authMiddleware } from '../../middleware/auth.js';
 
 export const wikiRouter = Router();
 

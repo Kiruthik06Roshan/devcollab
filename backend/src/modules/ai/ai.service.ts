@@ -1,4 +1,4 @@
-import { aiService } from '../../services/ai.service';
+import { aiService } from '../../services/ai.service.js';
 
 export const moduleAiService = {
   taskBreakdown(prompt: string) {

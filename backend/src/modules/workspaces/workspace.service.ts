@@ -1,12 +1,12 @@
-import { ApiError } from '../../utils/apiError';
-import { WorkspaceModel } from '../../models/workspace.model';
-import { ProjectModel } from '../../models/project.model';
-import { UserModel } from '../../models/user.model';
-import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb';
-import { getSocketServer } from '../../config/socket';
-import { socketEvents } from '../../socket/events';
-import { slugify, randomSuffix } from '../../utils/slug';
-import { activityService } from '../activity/activity.service';
+import { ApiError } from '../../utils/apiError.js';
+import { WorkspaceModel } from '../../models/workspace.model.js';
+import { ProjectModel } from '../../models/project.model.js';
+import { UserModel } from '../../models/user.model.js';
+import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb.js';
+import { getSocketServer } from '../../config/socket.js';
+import { socketEvents } from '../../socket/events.js';
+import { slugify, randomSuffix } from '../../utils/slug.js';
+import { activityService } from '../activity/activity.service.js';
 
 function membershipQuery(userId: string) {
   return { $or: [{ owner: userId }, { 'members.user': userId }] };

@@ -1,4 +1,4 @@
-import { aiProviders, type AiProviderName, type AiPromptResult } from './ai.providers';
+import { aiProviders, type AiProviderName, type AiPromptResult } from './ai.providers.js';
 
 function makeResult(provider: AiProviderName, output: string): AiPromptResult {
   return { provider, output };

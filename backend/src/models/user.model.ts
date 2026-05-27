@@ -1,5 +1,5 @@
 import { Schema, model, type InferSchemaType } from 'mongoose';
-import { workspaceRoles } from './constants';
+import { workspaceRoles } from './constants.js';
 
 const workspaceMembershipSchema = new Schema(
   {

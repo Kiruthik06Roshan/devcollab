@@ -1,5 +1,5 @@
-import { ActivityLogModel } from '../../models/activityLog.model';
-import { getDatabaseMode } from '../../services/memoryDb';
+import { ActivityLogModel } from '../../models/activityLog.model.js';
+import { getDatabaseMode } from '../../services/memoryDb.js';
 
 export const activityService = {
   async list(workspaceId: string) {

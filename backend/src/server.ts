@@ -1,8 +1,8 @@
 import http from 'node:http';
-import { app } from './app';
-import { env } from './config/env';
-import { connectDatabase } from './config/db';
-import { attachSocketServer } from './config/socket';
+import { app } from './app.js';
+import { env } from './config/env.js';
+import { connectDatabase } from './config/db.js';
+import { attachSocketServer } from './config/socket.js';
 
 async function bootstrap() {
   await connectDatabase();

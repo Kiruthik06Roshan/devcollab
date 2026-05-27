@@ -1,6 +1,6 @@
-import { NotificationModel } from '../../models/notification.model';
-import { getDatabaseMode } from '../../services/memoryDb';
-import { ApiError } from '../../utils/apiError';
+import { NotificationModel } from '../../models/notification.model.js';
+import { getDatabaseMode } from '../../services/memoryDb.js';
+import { ApiError } from '../../utils/apiError.js';
 
 export const notificationService = {
   async list(userId: string) {

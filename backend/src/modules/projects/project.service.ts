@@ -1,12 +1,12 @@
-import { ApiError } from '../../utils/apiError';
-import { ProjectModel } from '../../models/project.model';
-import { TaskModel } from '../../models/task.model';
-import { WorkspaceModel } from '../../models/workspace.model';
-import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb';
-import { getSocketServer } from '../../config/socket';
-import { socketEvents } from '../../socket/events';
-import { randomSuffix, slugify } from '../../utils/slug';
-import { activityService } from '../activity/activity.service';
+import { ApiError } from '../../utils/apiError.js';
+import { ProjectModel } from '../../models/project.model.js';
+import { TaskModel } from '../../models/task.model.js';
+import { WorkspaceModel } from '../../models/workspace.model.js';
+import { getDatabaseMode, memoryDb, createId } from '../../services/memoryDb.js';
+import { getSocketServer } from '../../config/socket.js';
+import { socketEvents } from '../../socket/events.js';
+import { randomSuffix, slugify } from '../../utils/slug.js';
+import { activityService } from '../activity/activity.service.js';
 
 async function assertProjectAccess(userId: string, projectId: string) {
   if (getDatabaseMode() === 'memory') {

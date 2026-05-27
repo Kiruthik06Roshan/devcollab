@@ -1,5 +1,5 @@
 import { Schema, model, type InferSchemaType } from 'mongoose';
-import { activityTypes } from './constants';
+import { activityTypes } from './constants.js';
 
 const activityLogSchema = new Schema(
   {

@@ -1,5 +1,5 @@
 import { Schema, model, type InferSchemaType } from 'mongoose';
-import { projectStatuses } from './constants';
+import { projectStatuses } from './constants.js';
 
 const projectSchema = new Schema(
   {

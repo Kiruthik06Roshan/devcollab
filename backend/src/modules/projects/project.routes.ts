@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { projectController } from './project.controller';
-import { authMiddleware } from '../../middleware/auth';
-import { validateBody } from '../../middleware/validate';
-import { asyncHandler } from '../../utils/asyncHandler';
-import { projectSchema } from './project.schemas';
-import { taskController } from '../tasks/task.controller';
-import { taskCreateSchema } from '../tasks/task.schemas';
+import { projectController } from './project.controller.js';
+import { authMiddleware } from '../../middleware/auth.js';
+import { validateBody } from '../../middleware/validate.js';
+import { asyncHandler } from '../../utils/asyncHandler.js';
+import { projectSchema } from './project.schemas.js';
+import { taskController } from '../tasks/task.controller.js';
+import { taskCreateSchema } from '../tasks/task.schemas.js';
 
 export const projectRouter = Router();
 

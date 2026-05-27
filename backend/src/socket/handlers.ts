@@ -1,5 +1,5 @@
 import type { Server, Socket } from 'socket.io';
-import { socketEvents } from './events';
+import { socketEvents } from './events.js';
 
 type PresenceEntry = { sockets: Set<string>; user: { id: string; name: string; avatarUrl?: string } };
 

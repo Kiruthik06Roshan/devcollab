@@ -1,10 +1,10 @@
 import type http from 'node:http';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
-import { env } from './env';
-import { registerSocketHandlers } from '../socket/handlers';
-import { UserModel } from '../models/user.model';
-import { getDatabaseMode, memoryDb } from '../services/memoryDb';
+import { env } from './env.js';
+import { registerSocketHandlers } from '../socket/handlers.js';
+import { UserModel } from '../models/user.model.js';
+import { getDatabaseMode, memoryDb } from '../services/memoryDb.js';
 
 let socketServer: Server | null = null;
 

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { taskService } from './task.service';
+import { taskService } from './task.service.js';
 
 export const taskController = {
   async list(req: Request, res: Response) {

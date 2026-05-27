@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { notificationController } from './notification.controller';
-import { authMiddleware } from '../../middleware/auth';
+import { notificationController } from './notification.controller.js';
+import { authMiddleware } from '../../middleware/auth.js';
 
 export const notificationRouter = Router();
 

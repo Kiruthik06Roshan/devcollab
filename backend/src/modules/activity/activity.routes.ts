@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { activityController } from './activity.controller';
-import { authMiddleware } from '../../middleware/auth';
+import { activityController } from './activity.controller.js';
+import { authMiddleware } from '../../middleware/auth.js';
 
 export const activityRouter = Router();
 

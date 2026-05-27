@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { projectService } from './project.service';
+import { projectService } from './project.service.js';
 
 export const projectController = {
   async list(req: Request, res: Response) {
