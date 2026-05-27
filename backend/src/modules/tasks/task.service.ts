@@ -99,9 +99,9 @@ export const taskService = {
       try {
         const io = getSocketServer();
         io.to(`project:${projectId}`).emit(socketEvents.taskUpdated, { projectId, taskId: task.id });
-        io.to(`workspace:${project.workspace}`).emit(socketEvents.activityNew, { workspaceId: project.workspace });
+        io.to(`workspace:${project.workspace?.toString()}`).emit(socketEvents.activityNew, { workspaceId: project.workspace?.toString() });
         void activityService.create({
-          workspace: project.workspace,
+          workspace: project.workspace?.toString(),
           project: project.id,
           task: task.id,
           actor: userId,
